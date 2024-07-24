@@ -1,4 +1,4 @@
-import test, { Page } from '@playwright/test';
+import { Page } from '@playwright/test';
 import { Header } from '@components/header.component';
 
 export abstract class BasePage {
@@ -14,6 +14,18 @@ export abstract class BasePage {
 
   async pause(): Promise<void> {
     await this.page.pause();
+  }
+
+  async getText(tag: string): Promise<string> {
+    return this.page.locator(tag).innerText();
+  }
+
+  async waitSelector(selector: string): Promise<void> {
+    await this.page.waitForSelector(selector);
+  }
+
+  async waitForTimeout(time: number): Promise<void> {
+    await this.page.waitForTimeout(time);
   }
 
 }
