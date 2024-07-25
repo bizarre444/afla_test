@@ -10,6 +10,11 @@ export class StorePage extends BasePage {
     readonly priceTo: Locator;
     readonly discountCheckbox: Locator;
     readonly allNotes: Locator;
+    readonly basketDropdownOpen: Locator;
+    readonly basketDropdown: Locator;
+    readonly goToBasket: Locator;
+    readonly clearBasket: Locator;
+    readonly countInBasket: string;
 
     constructor(page: Page) {
         super(page);
@@ -21,23 +26,37 @@ export class StorePage extends BasePage {
         this.priceTo = page.locator('/html/body/div/div[1]/div/div[1]/form/div[1]/div[4]/div/input[2]');
         this.discountCheckbox = page.getByLabel('Показать только со скидкой');
         this.allNotes = page.locator('.note-list row');
+        this.basketDropdownOpen = page.locator('#dropdownBasket');
+        this.basketDropdown = page.locator('.dropdown-menu dropdown-menu-right show');
+        this.goToBasket = page.getByRole('button', {name: 'Перейти в корзину'});
+        this.clearBasket = page.getByRole('button', {name: 'Очистить корзину'});
+        this.countInBasket = '//*[@id="basketContainer"]/span';
     }
 
-    async getDiscountedNotes() {
+    async showNotesWithDiscount() {
         await this.discountCheckbox.click();
     }
 
-    async isDiscounted(): Promise<boolean> {
-        let index: number = await this.getRandomNoteNumber();
+    async getIndexNoteWithDiscount(): Promise<any> {
         let arrayNotes: Array<string> = await this.getAllNotes(); 
-        if( arrayNotes[index] === 'note-item card h-100 hasDiscount') {
-            console.log(arrayNotes[index], '- true');
-            return true;
-        } else {
-            console.log(arrayNotes[index], '- false');
-            return false;
+        for(let i = 0; i < arrayNotes.length; i++) {
+            if( arrayNotes[i] === 'note-item card h-100 hasDiscount') {
+                return i;
+            } else {
+                continue;
+            }
         }
-        
+    }
+
+    async getIndexNoteWithoutDiscount(): Promise<any> {
+        let arrayNotes: Array<string> = await this.getAllNotes(); 
+        for(let i = 0; i < arrayNotes.length; i++) {
+            if( arrayNotes[i] === 'note-item card h-100') {
+                return i;
+            } else {
+                continue;
+            }
+        }
     }
 
     async getCardClass() {
@@ -49,10 +68,54 @@ export class StorePage extends BasePage {
         return arrayNotes;
     }
 
-    async getRandomNoteNumber() {
-        let arrayNotes: Array<string> = await this.getAllNotes(); 
-        const lengthArray: number = await arrayNotes.length;
-        let index: number = await Math.floor(Math.random() * lengthArray);
-        return index;
+    async getCountNotesInBasket(): Promise<any> {
+        (await this.storePage.waitForSelector(this.countInBasket)).isVisible();
+        let count = await this.storePage.locator('#basketContainer > span').innerText();
+        return count;
     }
+
+    async isBasketEmpty(): Promise<boolean> {
+        let count = await this.getCountNotesInBasket();
+        if(await count == '0') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    async clickBasket() {
+        await this.basketDropdownOpen.click();
+        await this.goToBasket.isVisible();
+        //console.log('visible');
+    }
+
+    async getClearBasket() {
+        await this.basketDropdownOpen.click();
+        await this.basketDropdown.isVisible();
+        await this.clearBasket.click();
+    }
+
+    async clickGoToBasket() {
+        //await this.basketDropdownOpen.click();
+        await this.basketDropdown.isVisible();
+        await this.goToBasket.click();
+    }
+
+    async addNoteWithoutDiscount() {
+        let indexNote = await this.getIndexNoteWithoutDiscount();
+        let locator = '//html/body/div/div[1]/div/div[2]/div[' + indexNote + ']/div/div[2]/button';
+        await this.storePage.locator(locator).click();
+        await this.storePage.waitForTimeout(1000);
+    }
+
 }
+/*
+
+without(2)
+/html/body/div/div[1]/div/div[2]/div[2]/div/div[2]/button
+
+without(4)
+/html/body/div/div[1]/div/div[2]/div[4]/div/div[2]/button
+
+
+*/

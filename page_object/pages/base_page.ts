@@ -9,15 +9,15 @@ export abstract class BasePage {
   }
 
   async visit(url: string): Promise<void> {
-    await this.page.goto(url, { waitUntil: 'networkidle' });
+    await this.page.goto(url);
   }
 
   async pause(): Promise<void> {
     await this.page.pause();
   }
 
-  async getText(tag: string): Promise<string> {
-    return this.page.locator(tag).innerText();
+  async getInnerText(tag: string): Promise<any> {
+    return await this.page.locator(tag).innerText();
   }
 
   async waitSelector(selector: string): Promise<void> {
@@ -26,6 +26,10 @@ export abstract class BasePage {
 
   async waitForTimeout(time: number): Promise<void> {
     await this.page.waitForTimeout(time);
+  }
+
+  async getUrl() {
+    return this.page.url();
   }
 
 }
