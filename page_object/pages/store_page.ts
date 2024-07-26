@@ -3,11 +3,6 @@ import { BasePage } from './base_page';
 
 export class StorePage extends BasePage {
     readonly storePage: Page;
-    readonly searchName: Locator;
-    readonly typeDropdown: Locator;
-    readonly brandInput: Locator;
-    readonly priceFrom: Locator;
-    readonly priceTo: Locator;
     readonly discountCheckbox: Locator;
     readonly allNotes: Locator;
     readonly basketDropdownOpen: Locator;
@@ -15,15 +10,11 @@ export class StorePage extends BasePage {
     readonly goToBasket: Locator;
     readonly clearBasket: Locator;
     readonly countInBasket: string;
+    readonly nextPage: Locator;
 
     constructor(page: Page) {
         super(page);
         this.storePage = page;
-        this.searchName = page.getByPlaceholder('Поиск по названию');
-        this.typeDropdown = page.getByPlaceholder('Тип');
-        this.brandInput = page.getByPlaceholder('Бренд');
-        this.priceFrom = page.locator('/html/body/div/div[1]/div/div[1]/form/div[1]/div[4]/div/input[1]');
-        this.priceTo = page.locator('/html/body/div/div[1]/div/div[1]/form/div[1]/div[4]/div/input[2]');
         this.discountCheckbox = page.getByLabel('Показать только со скидкой');
         this.allNotes = page.locator('.note-list row');
         this.basketDropdownOpen = page.locator('#dropdownBasket');
@@ -31,6 +22,7 @@ export class StorePage extends BasePage {
         this.goToBasket = page.getByRole('button', {name: 'Перейти в корзину'});
         this.clearBasket = page.getByRole('button', {name: 'Очистить корзину'});
         this.countInBasket = '//*[@id="basketContainer"]/span';
+        this.nextPage = page.locator('ul.pagination li:nth-child(2) > a');
     }
 
     async showNotesWithDiscount() {
@@ -41,7 +33,7 @@ export class StorePage extends BasePage {
         let arrayNotes: Array<string> = await this.getAllNotes(); 
         for(let i = 0; i < arrayNotes.length; i++) {
             if( arrayNotes[i] === 'note-item card h-100 hasDiscount') {
-                return i;
+                return i+1;
             } else {
                 continue;
             }
@@ -52,7 +44,7 @@ export class StorePage extends BasePage {
         let arrayNotes: Array<string> = await this.getAllNotes(); 
         for(let i = 0; i < arrayNotes.length; i++) {
             if( arrayNotes[i] === 'note-item card h-100') {
-                return i;
+                return i+1;
             } else {
                 continue;
             }
@@ -86,7 +78,6 @@ export class StorePage extends BasePage {
     async clickBasket() {
         await this.basketDropdownOpen.click();
         await this.goToBasket.isVisible();
-        //console.log('visible');
     }
 
     async getClearBasket() {
@@ -96,7 +87,6 @@ export class StorePage extends BasePage {
     }
 
     async clickGoToBasket() {
-        //await this.basketDropdownOpen.click();
         await this.basketDropdown.isVisible();
         await this.goToBasket.click();
     }
@@ -108,14 +98,27 @@ export class StorePage extends BasePage {
         await this.storePage.waitForTimeout(1000);
     }
 
+    async addNoteWithDiscount() {
+        let indexNote = await this.getIndexNoteWithDiscount();
+        let locator ='//html/body/div/div[1]/div/div[2]/div[' + indexNote + ']/div/div[2]/button';
+        await this.storePage.locator(locator).click();
+        await this.storePage.waitForTimeout(1000);
+    }
+
+    async addDifferentNineNotes() {
+        for(let i = 1; i <  9; i++) {
+            await this.storePage.locator('//html/body/div/div[1]/div/div[2]/div[' + i + ']/div/div[2]/button').click();
+            await this.storePage.waitForTimeout(1000);
+        }
+        await this.nextPage.click();
+        await this.storePage.waitForTimeout(1000);
+        await this.storePage.locator('//html/body/div/div[1]/div/div[2]/div[1]/div/div[2]/button').click();
+    }
+
+    async addNineNotes() {
+        for(let i = 0; i <  9; i++) {
+            await this.storePage.locator('//html/body/div/div[1]/div/div[2]/div[2]/div/div[2]/button').click();
+            await this.storePage.waitForTimeout(3000);
+        }
+    }
 }
-/*
-
-without(2)
-/html/body/div/div[1]/div/div[2]/div[2]/div/div[2]/button
-
-without(4)
-/html/body/div/div[1]/div/div[2]/div[4]/div/div[2]/button
-
-
-*/
